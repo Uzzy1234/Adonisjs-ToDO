@@ -45,7 +45,6 @@ class TaskController {
     const user = await auth.getUser()
     const task = await Task.find(params.id)
     const project_tasks = await task.project().fetch()
-    console.log(project_tasks)
     AuthorizationService.verifyPermission(project_tasks, user)
     task.delete()
     return response.status(200).json({
