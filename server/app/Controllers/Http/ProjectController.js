@@ -38,6 +38,24 @@ class ProjectController {
     }
 
   }
+
+  async update({ response, auth, request, params }) {
+    const user = await auth.getUser()
+    const project = await Project.find(params.id)
+    if (project.user_id == user.id) {
+      project.merge(request.only('title'))
+      await project.save()
+      return response.status(200).json({
+        status: "success",
+        data: project
+      })
+    } else {
+      return response.status(403).json({
+        status: "fail",
+        message: "not authorised"
+      })
+    }
+  }
 }
 
 module.exports = ProjectController
