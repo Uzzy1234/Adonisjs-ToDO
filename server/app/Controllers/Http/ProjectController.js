@@ -1,5 +1,7 @@
 'use strict'
 const Project = use('App/Models/Project')
+const AuthorizationService = use('App/Services/AuthorizationService')
+const InvalidAccessException = use('App/Exceptions/InvalidAccessException')
 
 class ProjectController {
   async index({ response, request, auth }) {
@@ -24,37 +26,24 @@ class ProjectController {
   async destroy({ response, auth, request, params }) {
     const user = await auth.getUser()
     const project = await Project.find(params.id)
-    if (project.user_id == user.id) {
-      project.delete()
-      return response.status(200).json({
-        status: "success",
-        data: project
-      })
-    } else {
-      return response.status(403).json({
-        status: "fail",
-        message: "not authorised"
-      })
-    }
-
+    AuthorizationService.verifyPermission(project, user)
+    project.delete()
+    return response.status(200).json({
+      status: "success",
+      data: project
+    })
   }
 
   async update({ response, auth, request, params }) {
     const user = await auth.getUser()
     const project = await Project.find(params.id)
-    if (project.user_id == user.id) {
-      project.merge(request.only('title'))
-      await project.save()
-      return response.status(200).json({
-        status: "success",
-        data: project
-      })
-    } else {
-      return response.status(403).json({
-        status: "fail",
-        message: "not authorised"
-      })
-    }
+    AuthorizationService.verifyPermission(project, user)
+    project.merge(request.only('title'))
+    await project.save()
+    return response.status(200).json({
+      status: "success",
+      data: project
+    })
   }
 }
 
